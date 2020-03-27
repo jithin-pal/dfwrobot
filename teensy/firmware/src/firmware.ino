@@ -65,10 +65,10 @@ ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
 ros::Subscriber<lino_msgs::PID> pid_sub("pid", PIDCallback);
 
 lino_msgs::Imu raw_imu_msg;
-ros::Publisher raw_imu_pub("raw_imu", &raw_imu_msg);
+ros::Publisher raw_imu_pub("/linorobot/teensy/imu_raw", &raw_imu_msg);
 
 lino_msgs::Velocities raw_vel_msg;
-ros::Publisher raw_vel_pub("raw_vel", &raw_vel_msg);
+ros::Publisher raw_vel_pub("/linorobot/teensy/velocities", &raw_vel_msg);
 
 void setup()
 {
@@ -95,7 +95,7 @@ void loop()
     static unsigned long prev_control_time = 0;
     static unsigned long prev_imu_time = 0;
     static unsigned long prev_debug_time = 0;
-    static bool imu_is_initialized;
+    static bool imu_is_initialized = false;
 
     //this block drives the robot based on defined rate
     if ((millis() - prev_control_time) >= (1000 / COMMAND_RATE))
@@ -116,10 +116,24 @@ void loop()
         //sanity check if the IMU is connected
         if (!imu_is_initialized)
         {
-            imu_is_initialized = initIMU();
+            initIMU();
 
-            if(imu_is_initialized)
-                nh.loginfo("IMU Initialized");
+            bool accel_ok = accelerometer.testConnection();
+            bool gyro_ok = gyroscope.testConnection();
+            bool mag_ok = magnetometer.testConnection();
+            char buffer[50];
+
+            sprintf(buffer, "ACCELEROMETER : %s", accel_ok ? "OK":"FAIL");
+            nh.loginfo(buffer);
+
+            sprintf(buffer, "GYROSCOPE     : %s", gyro_ok ? "OK":"FAIL");
+            nh.loginfo(buffer);
+
+            sprintf(buffer, "MAGNETOMETER  : %s", mag_ok ? "OK":"FAIL");
+            nh.loginfo(buffer);
+
+            if(accel_ok && gyro_ok && mag_ok)
+                imu_is_initialized = true;
             else
                 nh.logfatal("IMU failed to initialize. Check your IMU connection.");
         }

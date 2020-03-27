@@ -13,9 +13,8 @@
         <param name="use_magnetic_field_msg" value="true" /> 
         <param name="world_frame" value="enu" />
         <param name="orientation_stddev" value="0.05" />
+        <remap from="imu/data_raw" to="/linorobot/imu/data_raw"/>
+        <remap from="imu/mag" to="/linorobot/imu/mag"/>
+        <remap from="imu/data" to="/linorobot/imu/data"/>
     </node>
-
-        
-    <!-- Publish static transform from base_footprint to imu_link -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="base_footprint_to_imu_link" args="0 0 0 0 0 0  /base_footprint /imu_link"/>
 </launch>
